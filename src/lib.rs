@@ -29,7 +29,7 @@ pub fn xc_reflect(tokens: TokenStream) -> TokenStream {
     });
 
     let output = quote! {
-        impl crate::XcReflect for #name {
+        impl cxc::XcReflect for #name {
             fn alias_code<'a>() -> &'a str {
                 stringify!(
                     #name {
