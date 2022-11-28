@@ -32,8 +32,8 @@ pub fn xc_reflect(tokens: TokenStream) -> TokenStream {
         impl cxc::XcReflect for #name {
             fn alias_code<'a>() -> &'a str {
                 stringify!(
-                    #name {
-                        #(#fields)*
+                    #name = {
+                        #(#fields)*,
                     }
                 )
             }
