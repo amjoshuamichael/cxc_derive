@@ -33,7 +33,7 @@ pub fn xc_reflect(tokens: TokenStream) -> TokenStream {
             fn alias_code<'a>() -> &'a str {
                 stringify!(
                     #name = {
-                        #(#fields)*,
+                        #(#fields),*
                     }
                 )
             }
