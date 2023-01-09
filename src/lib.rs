@@ -1,7 +1,9 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Type, TypeArray, TypePath};
+use syn::{
+    parse_macro_input, Data, DataStruct, DeriveInput, Fields, Type, TypeArray, TypePath, TypeTuple,
+};
 
 #[proc_macro_derive(XcReflect)]
 pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
@@ -60,7 +62,12 @@ fn type_data_to_tokens(typ: &Type) -> TokenStream {
                 &*("[".to_string() + &*((#len).to_string()) + "]" + #base)
             }
         }
-        Type::Tuple(_) => todo!("XcReflect derive does not yet support tuples"),
+        Type::Tuple(TypeTuple { elems, .. }) => {
+            let elems: Vec<_> = elems.iter().map(type_data_to_tokens).collect();
+            quote! {
+                &*("{ ".to_string() + #( #elems + ", ")+* + "}")
+            }
+        }
         _ => panic!("XcReflect derive does not support this field type"),
     }
 }

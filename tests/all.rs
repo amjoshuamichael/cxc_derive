@@ -41,3 +41,16 @@ fn array_with_const_size() {
         "ArrayWithConstSize = { array : [32]i32, }"
     );
 }
+
+#[derive(XcReflect)]
+struct TupleInStruct {
+    array: (i32, f32),
+}
+
+#[test]
+fn tuple_in_struct() {
+    assert_eq!(
+        TupleInStruct::alias_code(),
+        "TupleInStruct = { array : { i32, f32, }, }"
+    );
+}
