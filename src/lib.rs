@@ -17,20 +17,30 @@ pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
         _ => panic!("XcReflect derive does not yet support this type"),
     };
 
-    let fields = fields_punctuated.iter().map(|field| {
-        let field_ident = field.ident.as_ref().unwrap();
-        let field_ty = type_data_to_tokens(&field.ty);
-        quote! { #field_ident: #field_ty }
+    let field_names = fields_punctuated.iter().map(|field| {
+        let field_name = field.ident.as_ref().unwrap();
+        quote! { #field_name: }
     });
+    let field_types = fields_punctuated
+        .iter()
+        .map(|field| type_data_to_tokens(&field.ty));
 
     let output = quote! {
         impl cxc::XcReflect for #name {
-            fn alias_code<'a>() -> &'a str {
-                stringify!(
-                    #name = {
-                        #(#fields),*
-                    }
-                )
+            fn alias_code() -> String {
+                let mut alias = stringify!(#name = ).to_string();
+                alias += " { ";
+
+                #(
+                    alias += stringify!(#field_names);
+                    alias += " ";
+                    alias += #field_types;
+                    alias += ", ";
+                )*
+
+                alias += "}";
+
+                alias
             }
         }
     };
@@ -42,11 +52,13 @@ fn type_data_to_tokens(typ: &Type) -> TokenStream {
     match typ {
         Type::Path(TypePath { path, .. }) => {
             let type_name = path.segments.iter().last();
-            quote! { #type_name }
+            quote! { stringify! ( #type_name ) }
         }
         Type::Array(TypeArray { elem, len, .. }) => {
             let base = type_data_to_tokens(&**elem);
-            quote! { [ #len ] #base }
+            quote! {
+                &*("[".to_string() + &*((#len).to_string()) + "]" + #base)
+            }
         }
         Type::Tuple(_) => todo!("XcReflect derive does not yet support tuples"),
         _ => panic!("XcReflect derive does not support this field type"),
