@@ -85,13 +85,26 @@ fn multi_array_with_expr_size() {
 
 #[derive(XcReflect)]
 struct TupleInStruct {
-    array: (i32, f32),
+    tuple: (i32, f32),
 }
 
 #[test]
 fn tuple_in_struct() {
     assert_eq!(
         TupleInStruct::alias_code(),
-        "TupleInStruct = { array : { i32, f32, }, }"
+        "TupleInStruct = { tuple : { i32, f32, }, }"
     );
 }
+
+//#[derive(XcReflect)]
+//struct WithPointers {
+//    pointer_to_something: *const (i32, f32),
+//}
+//
+//#[test]
+//fn raw_pointer() {
+//    assert_eq!(
+//        WithPointers::alias_code(),
+//        "WithPointers = { pointer_to_something : &{ i32, f32, }, }"
+//    );
+//}
