@@ -5,15 +5,27 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse_macro_input, Data, DataStruct, DeriveInput, Fields, Type, TypeArray, TypePath, TypePtr,
-    TypeTuple, TypeBareFn, ReturnType, TypeParen, TypeReference, PathArguments, AngleBracketedGenericArguments, GenericArgument, FieldsNamed, DataEnum, FieldsUnnamed,
+    TypeTuple, TypeBareFn, ReturnType, TypeParen, TypeReference, PathArguments, AngleBracketedGenericArguments, GenericArgument, FieldsNamed, DataEnum, FieldsUnnamed, Ident,
 };
+
+#[proc_macro_attribute]
+pub fn xc_opaque(attr: TokenStream1, item: TokenStream1) -> TokenStream1 {
+    item
+}
 
 #[proc_macro_derive(XcReflect)]
 pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
     let input = parse_macro_input!(tokens as DeriveInput);
+
+    let xc_opaque = input.attrs.iter().any(|attribute| match attribute.path.segments.last() {
+        Some(last_seg) => dbg!(last_seg.ident.to_string()) == String::from("xc_opaque"),
+        None => false,
+    });
+
     let name = input.ident;
 
     let output = match input.data {
+        _ if xc_opaque => opaque_token_stream(name.clone()),
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
@@ -115,6 +127,14 @@ fn enum_token_stream(variants: DataEnum) -> TokenStream {
         )*
 
         alias += "}";
+    }
+}
+
+fn opaque_token_stream(ident: Ident) -> TokenStream {
+    quote! {
+        alias += "{ [ ";
+        alias += &*(std::mem::size_of::<#ident>() / 4).to_string();
+        alias += " ] }";
     }
 }
 

@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use cxc::XcReflect;
+use cxc::xc_opaque;
 
 #[derive(XcReflect)]
 struct Point2D {
@@ -250,5 +252,20 @@ fn nothing() {
     assert_eq!(
         Nothing::alias_code(),
         "Nothing = {}"
+    )
+}
+
+#[derive(XcReflect)]
+#[xc_opaque]
+struct CrazyOpaque {
+    hash1: HashMap<(u32, u32), u32>,
+    rc: Rc<f32>,
+}
+
+#[test]
+fn crazy_opaque() {
+    assert_eq!(
+        CrazyOpaque::alias_code(),
+        format!("CrazyOpaque = {{ [ {} ] }}", std::mem::size_of::<CrazyOpaque>() / 4)
     )
 }
