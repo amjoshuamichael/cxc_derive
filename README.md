@@ -35,4 +35,4 @@ fn numbers_5() {
 }
 ```
 
-Supports regular struct types, enums, tuples, function types, references, raw pointers, etc. AFAIK, the only thing it doesn't support it Unions, because those aren't in [cxc](https://github.com/amjoshuamichael/cxc). If there's anything that it doesn't support that you think ti should, then please submit an [issue](https://github.com/amjoshuamichael/cxc_derive/issues/new/choose)
+Supports regular struct types, enums, tuples, function types, references, raw pointers, etc. AFAIK, the only thing it doesn't support it Unions, because those aren't in [cxc](https://github.com/amjoshuamichael/cxc). If there's anything that it doesn't support that you think it should, then please submit an [issue](https://github.com/amjoshuamichael/cxc_derive/issues/new/choose)
