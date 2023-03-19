@@ -1,4 +1,4 @@
-🪞 cxc-derive: Make any type usable in cxc
+# 🪞 cxc-derive: Make any type usable in cxc
 
 ```rust
 use cxc::Unit;
