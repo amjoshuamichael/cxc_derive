@@ -9,7 +9,7 @@ use syn::{
 };
 
 #[proc_macro_attribute]
-pub fn xc_opaque(attr: TokenStream1, item: TokenStream1) -> TokenStream1 {
+pub fn xc_opaque(_: TokenStream1, item: TokenStream1) -> TokenStream1 {
     item
 }
 
@@ -18,7 +18,7 @@ pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
     let input = parse_macro_input!(tokens as DeriveInput);
 
     let xc_opaque = input.attrs.iter().any(|attribute| match attribute.path.segments.last() {
-        Some(last_seg) => dbg!(last_seg.ident.to_string()) == String::from("xc_opaque"),
+        Some(last_seg) => last_seg.ident.to_string() == String::from("xc_opaque"),
         None => false,
     });
 
