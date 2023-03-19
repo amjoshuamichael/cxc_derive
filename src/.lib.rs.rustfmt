@@ -1,9 +1,11 @@
+use std::intrinsics::mir::Field;
+
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse_macro_input, Data, DataStruct, DeriveInput, Fields, Type, TypeArray, TypePath, TypePtr,
-    TypeTuple, TypeBareFn, ReturnType, TypeParen, TypeReference, PathArguments, AngleBracketedGenericArguments, GenericArgument, FieldsNamed, DataEnum, FieldsUnnamed,
+    TypeTuple, TypeBareFn, ReturnType, TypeParen, TypeReference, PathArguments, AngleBracketedGenericArguments, GenericArgument, FieldsNamed, punctuated::Punctuated,
 };
 
 #[proc_macro_derive(XcReflect)]
@@ -11,33 +13,13 @@ pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
     let input = parse_macro_input!(tokens as DeriveInput);
     let name = input.ident;
 
-    let output = match input.data {
+    let fields_punctuated = match input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
-        }) => struct_token_stream(fields),
-        Data::Struct(DataStruct {
-            fields: Fields::Unnamed(fields),
-            ..
-        }) => tuple_token_stream(fields),
-        Data::Struct(DataStruct {
-            fields: Fields::Unit,
-            ..
-        }) => quote! { alias += "{}"; },
-        Data::Enum(enum_) => enum_token_stream(enum_),
-        Data::Union(_) => todo!("cxc does not yet contain unions."),
-    };
-
-    let output = quote! {
-        impl cxc::XcReflect for #name {
-            fn alias_code() -> String {
-                let mut alias = stringify!(#name =).to_string() + " ";
-
-                #output
-
-                alias
-            }
-        }
+        }) => fields.named,
+        Data::Enum(_) => todo!("XcReflect derive does not yet support enums"),
+        _ => panic!("XcReflect derive does not yet support this type"),
     };
 
     TokenStream::from(output).into()
@@ -48,71 +30,28 @@ fn struct_token_stream(fields: FieldsNamed) -> TokenStream {
         let field_name = field.ident.as_ref().unwrap();
         quote! { #field_name }
     });
-
     let field_types = fields.named
         .iter()
         .map(|field| type_data_to_tokens(&field.ty));
 
     quote! {
-        alias += "{ ";
+        impl cxc::XcReflect for #name {
+            fn alias_code() -> String {
+                let mut alias = stringify!(#name = ).to_string();
+                alias += " { ";
 
-        #(
-            alias += stringify!(#field_names :);
-            alias += " ";
-            alias += #field_types;
-            alias += ", ";
-        )*
+                #(
+                    alias += stringify!(#field_names :);
+                    alias += " ";
+                    alias += #field_types;
+                    alias += ", ";
+                )*
 
-        alias += "}";
-    }
-}
+                alias += "}";
 
-fn tuple_token_stream(fields: FieldsUnnamed) -> TokenStream {
-    let field_types = fields.unnamed
-        .iter()
-        .map(|field| type_data_to_tokens(&field.ty));
-
-    quote! {
-        alias += "{ ";
-
-        #(
-            alias += #field_types;
-            alias += ", ";
-        )*
-
-        alias += "}";
-    }
-}
-
-fn enum_token_stream(variants: DataEnum) -> TokenStream {
-    let variant_names = variants.variants.iter().map(|variant| {
-        let variant_name = variant.ident.clone();
-        quote! { #variant_name }
-    });
-
-    let variant_types = variants.variants.iter().map(|variant| {
-        match variant.fields.clone() {
-            Fields::Named(fields_named) => {
-                struct_token_stream(fields_named)
-            },
-            Fields::Unnamed(fields_unnamed) => {
-                tuple_token_stream(fields_unnamed)
-            },
-            Fields::Unit => quote! {},
+                alias
+            }
         }
-    });
-
-    quote! {
-        alias += "{ ";
-
-        #(
-            alias += stringify! { #variant_names };
-            alias += " : ";
-            #variant_types;
-            alias += " / ";
-        )*
-
-        alias += "}";
     }
 }
 
@@ -164,15 +103,12 @@ fn type_data_to_tokens(typ: &Type) -> TokenStream {
             let args = inputs.iter().map(|i| type_data_to_tokens(&i.ty)).collect::<Vec<_>>();
 
             let ret = match output {
-                ReturnType::Default => quote! {""},
-                ReturnType::Type(_, ret) => {
-                    let ret = type_data_to_tokens(ret);
-                    quote! { "; " + #ret }
-                }
+                ReturnType::Default => todo!("cannot derive void fn"),
+                ReturnType::Type(_, ret) => type_data_to_tokens(ret),
             };
 
             quote! {
-                &*(String::from("(") + #(#args + ", ")+* + ")" + #ret)
+                "(" + #(#args + ", ")+* + "); " + #ret
             }
         }
         Type::Paren(TypeParen { elem, .. }) => type_data_to_tokens(&*elem),

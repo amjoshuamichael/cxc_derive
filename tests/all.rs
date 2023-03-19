@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+
 use cxc::XcReflect;
 
 #[derive(XcReflect)]
@@ -96,15 +98,157 @@ fn tuple_in_struct() {
     );
 }
 
-//#[derive(XcReflect)]
-//struct WithPointers {
-//    pointer_to_something: *const (i32, f32),
-//}
-//
-//#[test]
-//fn raw_pointer() {
-//    assert_eq!(
-//        WithPointers::alias_code(),
-//        "WithPointers = { pointer_to_something : &{ i32, f32, }, }"
-//    );
-//}
+#[derive(XcReflect)]
+struct WithPointers {
+    pointer_to_something: *const (i32, f32),
+}
+
+#[test]
+fn raw_pointer() {
+    assert_eq!(
+        WithPointers::alias_code(),
+        "WithPointers = { pointer_to_something : &{ i32, f32, }, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct WithMutPointers {
+    pointer_to_something: *mut (i32, f32),
+}
+
+#[test]
+fn mut_pointer() {
+    assert_eq!(
+        WithMutPointers::alias_code(),
+        "WithMutPointers = { pointer_to_something : &{ i32, f32, }, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct HoldingVec {
+    inner: Vec<u32>,
+}
+
+#[test]
+fn holding_vec() {
+    assert_eq!(
+        HoldingVec::alias_code(),
+        "HoldingVec = { inner : Vec < u32, >, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct HoldingTupleVec {
+    inner: Vec<(u32, u32)>,
+}
+
+#[test]
+fn holding_tuple_vec() {
+    assert_eq!(
+        HoldingTupleVec::alias_code(),
+        "HoldingTupleVec = { inner : Vec < { u32, u32, }, >, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct HoldingTupleHashMap {
+    inner: HashMap<(u32, u32), (u32, u32)>,
+}
+
+#[test]
+fn holding_tuple_hashmap() {
+    assert_eq!(
+        HoldingTupleHashMap::alias_code(),
+        "HoldingTupleHashMap = { inner : HashMap < { u32, u32, }, { u32, u32, }, >, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct FnHolder {
+    contains: fn(i32) -> i32,
+}
+
+#[test]
+fn fn_holder() {
+    assert_eq!(
+        FnHolder::alias_code(),
+        "FnHolder = { contains : (i32, ); i32, }"
+    );
+}
+
+#[derive(XcReflect)]
+struct FnHolderVoid {
+    contains: fn(i32),
+}
+
+#[test]
+fn fn_holder_void() {
+    assert_eq!(
+        FnHolderVoid::alias_code(),
+        "FnHolderVoid = { contains : (i32, ), }"
+    );
+}
+
+#[derive(XcReflect)]
+enum IntOrFloatNamed {
+    Int { the_int: u32 },
+    Float { the_float: f32 },
+}
+
+#[test]
+fn int_or_float_named() {
+    assert_eq!(
+        IntOrFloatNamed::alias_code(),
+        "IntOrFloatNamed = { Int : { the_int : u32, } / Float : { the_float : f32, } / }"
+    )
+}
+
+#[derive(XcReflect)]
+enum IntOrFloatUnnamed {
+    Int(u32, u32),
+    Float(f32, f32),
+}
+
+#[test]
+fn int_or_float_unnamed() {
+    assert_eq!(
+        IntOrFloatUnnamed::alias_code(),
+        "IntOrFloatUnnamed = { Int : { u32, u32, } / Float : { f32, f32, } / }"
+    )
+}
+
+#[derive(XcReflect)]
+enum IntOrFloatMixed {
+    Int { i: u32, u: u32 },
+    Float(f32, f32),
+}
+
+#[test]
+fn int_or_float_mixed() {
+    assert_eq!(
+        IntOrFloatMixed::alias_code(),
+        "IntOrFloatMixed = { Int : { i : u32, u : u32, } / Float : { f32, f32, } / }"
+    )
+}
+
+#[derive(XcReflect)]
+struct ComplexTuple(i32, Vec<(u32, u32)>);
+
+#[test]
+fn complex_tuple() {
+    assert_eq!(
+        ComplexTuple::alias_code(),
+        "ComplexTuple = { i32, Vec < { u32, u32, }, >, }"
+    )
+}
+
+#[derive(XcReflect)]
+struct Nothing;
+
+#[test]
+fn nothing() {
+    assert_eq!(
+        Nothing::alias_code(),
+        "Nothing = {}"
+    )
+}
