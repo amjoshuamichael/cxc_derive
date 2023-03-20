@@ -134,7 +134,7 @@ fn opaque_token_stream(ident: Ident) -> TokenStream {
     quote! {
         alias += "{ [ ";
         alias += &*(std::mem::size_of::<#ident>() / 4).to_string();
-        alias += " ] }";
+        alias += " ] u32 }";
     }
 }
 

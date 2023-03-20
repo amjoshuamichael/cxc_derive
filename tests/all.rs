@@ -266,6 +266,6 @@ struct CrazyOpaque {
 fn crazy_opaque() {
     assert_eq!(
         CrazyOpaque::alias_code(),
-        format!("CrazyOpaque = {{ [ {} ] }}", std::mem::size_of::<CrazyOpaque>() / 4)
+        format!("CrazyOpaque = {{ [ {} ] u32 }}", std::mem::size_of::<CrazyOpaque>() / 4)
     )
 }
