@@ -132,9 +132,35 @@ fn enum_token_stream(variants: DataEnum) -> TokenStream {
 
 fn opaque_token_stream(ident: Ident) -> TokenStream {
     quote! {
-        alias += "{ [ ";
-        alias += &*(std::mem::size_of::<#ident>() / 4).to_string();
-        alias += " ] u32 }";
+        use std::mem::size_of;
+
+        let alignment = std::mem::align_of::<#ident>();
+        let int_size = &*format!("u{}", alignment * 8);
+
+        if size_of::<#ident>() != size_of::<Option<#ident>>() {
+            if size_of::<#ident>() <= 8 {
+                alias += "{ ";
+                alias += int_size;
+                alias += " }";
+            } else {
+                alias += "{ [ ";
+                alias += &*(size_of::<#ident>() / alignment).to_string();
+                alias += " ] ";
+                alias += int_size;
+                alias += " }";
+            }
+        } else if size_of::<#ident>() == 8 {
+            alias += "{ &u32, }";
+        } else {
+            alias += "{ bool, ";
+
+            for _ in 1..(size_of::<Option<#ident>>() / alignment) {
+                alias += int_size;
+                alias += ", ";
+            }
+
+            alias += "}";
+        }
     }
 }
 

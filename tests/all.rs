@@ -258,14 +258,34 @@ fn nothing() {
 #[derive(XcReflect)]
 #[xc_opaque]
 struct CrazyOpaque {
-    hash1: HashMap<(u32, u32), u32>,
-    rc: Rc<f32>,
+    tuple: (u32, u32), 
+    num: u32,
+    float: f32,
+}
+
+fn size_over_alignment<T>() -> usize {
+    std::mem::size_of::<CrazyOpaque>() / std::mem::align_of::<CrazyOpaque>()
 }
 
 #[test]
 fn crazy_opaque() {
     assert_eq!(
         CrazyOpaque::alias_code(),
-        format!("CrazyOpaque = {{ [ {} ] u32 }}", std::mem::size_of::<CrazyOpaque>() / 4)
+        format!("CrazyOpaque = {{ [ {} ] u32 }}", size_over_alignment::<CrazyOpaque>())
+    )
+}
+
+#[derive(XcReflect)]
+#[xc_opaque]
+struct CrazyOpaqueWithPtr {
+    some_ptr: Rc<(u32, u32)>,
+    some_num: u32, 
+}
+
+#[test]
+fn crazy_opaque_with_ptr() {
+    assert_eq!(
+        CrazyOpaqueWithPtr::alias_code(),
+        "CrazyOpaqueWithPtr = { bool, u64, }"
     )
 }
