@@ -112,7 +112,7 @@ fn enum_token_stream(variants: DataEnum) -> TokenStream {
             Fields::Unnamed(fields_unnamed) => {
                 tuple_token_stream(fields_unnamed)
             },
-            Fields::Unit => quote! {},
+            Fields::Unit => quote! { alias += "{ }"; },
         }
     });
 

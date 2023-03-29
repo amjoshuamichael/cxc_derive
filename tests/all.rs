@@ -234,6 +234,20 @@ fn int_or_float_mixed() {
 }
 
 #[derive(XcReflect)]
+enum NoDataEnum {
+    Int,
+    Float,
+}
+
+#[test]
+fn no_data_enum() {
+    assert_eq!(
+        NoDataEnum::alias_code(),
+        "NoDataEnum = { Int : { } / Float : { } / }"
+    )
+}
+
+#[derive(XcReflect)]
 struct ComplexTuple(i32, Vec<(u32, u32)>);
 
 #[test]
