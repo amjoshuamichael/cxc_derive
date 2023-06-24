@@ -2,6 +2,13 @@
 name = "cxc_derive"
 version = "0.1.0"
 edition = "2021"
+description = "Derive crate for cxc"
+homepage = "http://amjoshuamichael.com/cxc/"
+repository = "http://amjoshuamichael.com/cxc/"
+readme = "README.md"
+keywords = ["derive"]
+categories = []
+include = ["/src/**/*", "/Cargo.toml", "/README.md", "LICENSE*"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
