@@ -37,19 +37,19 @@ pub fn xc_reflect(tokens: TokenStream1) -> TokenStream1 {
         Data::Struct(DataStruct {
             fields: Fields::Unit,
             ..
-        }) => quote! { alias += "{}"; },
+        }) => quote! { spec += "{}"; },
         Data::Enum(enum_) => enum_token_stream(enum_),
         Data::Union(_) => todo!("cxc does not yet contain unions."),
     };
 
     let output = quote! {
         impl cxc::XcReflect for #name {
-            fn alias_code() -> String {
-                let mut alias = stringify!(#name =).to_string() + " ";
+            fn spec_code() -> String {
+                let mut spec = stringify!(#name =).to_string() + " ";
 
                 #output
 
-                alias
+                spec
             }
         }
     };
@@ -68,16 +68,16 @@ fn struct_token_stream(fields: FieldsNamed) -> TokenStream {
         .map(|field| type_data_to_tokens(&field.ty));
 
     quote! {
-        alias += "{ ";
+        spec += "{ ";
 
         #(
-            alias += stringify!(#field_names :);
-            alias += " ";
-            alias += #field_types;
-            alias += ", ";
+            spec += stringify!(#field_names :);
+            spec += " ";
+            spec += #field_types;
+            spec += ", ";
         )*
 
-        alias += "}";
+        spec += "}";
     }
 }
 
@@ -87,14 +87,14 @@ fn tuple_token_stream(fields: FieldsUnnamed) -> TokenStream {
         .map(|field| type_data_to_tokens(&field.ty));
 
     quote! {
-        alias += "{ ";
+        spec += "{ ";
 
         #(
-            alias += #field_types;
-            alias += ", ";
+            spec += #field_types;
+            spec += ", ";
         )*
 
-        alias += "}";
+        spec += "}";
     }
 }
 
@@ -112,21 +112,21 @@ fn enum_token_stream(variants: DataEnum) -> TokenStream {
             Fields::Unnamed(fields_unnamed) => {
                 tuple_token_stream(fields_unnamed)
             },
-            Fields::Unit => quote! { alias += "{ }"; },
+            Fields::Unit => quote! { spec += "{ }"; },
         }
     });
 
     quote! {
-        alias += "{ ";
+        spec += "{ ";
 
         #(
-            alias += stringify! { #variant_names };
-            alias += " : ";
+            spec += stringify! { #variant_names };
+            spec += " : ";
             #variant_types;
-            alias += " / ";
+            spec += " / ";
         )*
 
-        alias += "}";
+        spec += "}";
     }
 }
 
@@ -139,27 +139,27 @@ fn opaque_token_stream(ident: Ident) -> TokenStream {
 
         if size_of::<#ident>() != size_of::<Option<#ident>>() {
             if size_of::<#ident>() <= 8 {
-                alias += "{ ";
-                alias += int_size;
-                alias += " }";
+                spec += "{ ";
+                spec += int_size;
+                spec += " }";
             } else {
-                alias += "{ [ ";
-                alias += &*(size_of::<#ident>() / alignment).to_string();
-                alias += " ] ";
-                alias += int_size;
-                alias += " }";
+                spec += "{ [ ";
+                spec += &*(size_of::<#ident>() / alignment).to_string();
+                spec += " ] ";
+                spec += int_size;
+                spec += " }";
             }
         } else if size_of::<#ident>() == 8 {
-            alias += "{ &u32, }";
+            spec += "{ &u32, }";
         } else {
-            alias += "{ bool, ";
+            spec += "{ bool, ";
 
             for _ in 1..(size_of::<Option<#ident>>() / alignment) {
-                alias += int_size;
-                alias += ", ";
+                spec += int_size;
+                spec += ", ";
             }
 
-            alias += "}";
+            spec += "}";
         }
     }
 }
